@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THRAMBLE | NYT Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nyt+Cheltenham:wght@400;500;700&family=Nyt+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nyt-black: #000;
+            --nyt-dark-gray: #333;
+            --nyt-gray: #666;
+            --nyt-light-gray: #999;
+            --nyt-lighter-gray: #ddd;
+            --nyt-cream: #faf9f7;
+            --nyt-off-white: #f7f7f5;
+            --nyt-success: #00a86b;
+            --nyt-success-light: #e8f5f0;
+            --nyt-warning: #d2691e;
+            --nyt-warning-light: #fdf4e8;
+            --nyt-error: #cc0000;
+            --nyt-error-light: #fdf2f2;
+            --nyt-blue: #4a90e2;
+            --nyt-blue-light: #e3f2fd;
+        }
+        
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Nyt Cheltenham', Georgia, serif;
+            background: var(--nyt-cream);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            color: var(--nyt-dark-gray);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .game-header {
+            background: var(--nyt-black);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--nyt-lighter-gray);
+        }
+        
+        .header-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .game-title {
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+        
+        .nyt-games-label {
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 11px;
+            color: var(--nyt-light-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+        
+        .game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            background: white;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .game-subtitle {
+            font-size: 16px;
+            color: var(--nyt-gray);
+            margin-bottom: 32px;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+        
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--nyt-lighter-gray);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-dot.completed {
+            background: var(--nyt-success);
+            transform: scale(1.2);
+        }
+        
+        .phrase-section {
+            margin-bottom: 28px;
+            padding: 24px;
+            background: var(--nyt-off-white);
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .phrase-section.solved {
+            background: var(--nyt-success-light);
+            border-color: var(--nyt-success);
+            box-shadow: 0 2px 8px rgba(0, 168, 107, 0.1);
+        }
+        
+        .phrase-label {
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--nyt-gray);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .phrase-label .checkmark {
+            opacity: 0;
+            color: var(--nyt-success);
+            font-size: 16px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .phrase-section.solved .phrase-label .checkmark {
+            opacity: 1;
+        }
+        
+        .letter-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+            justify-content: center;
+            min-height: 56px;
+            align-items: flex-start;
+            padding: 8px;
+        }
+        
+        .letter {
+            background: white;
+            border: 2px solid var(--nyt-lighter-gray);
+            padding: 12px;
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--nyt-dark-gray);
+            cursor: pointer;
+            user-select: none;
+            border-radius: 4px;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .letter:hover {
+            border-color: var(--nyt-blue);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .letter.selected {
+            background: var(--nyt-blue);
+            border-color: var(--nyt-blue);
+            color: white;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .letter.dragging {
+            opacity: 0.7;
+            transform: rotate(2deg) scale(1.05);
+            z-index: 1000;
+        }
+        
+        .solution-area {
+            min-height: 56px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--nyt-lighter-gray);
+        }
+        
+        .drop-zone {
+            background: var(--nyt-off-white);
+            border: 2px dashed var(--nyt-lighter-gray);
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .drop-zone:hover {
+            border-color: var(--nyt-blue);
+            background: var(--nyt-blue-light);
+        }
+        
+        .drop-zone.filled {
+            background: white;
+            border: 2px solid var(--nyt-success);
+            color: var(--nyt-dark-gray);
+            box-shadow: 0 1px 3px rgba(0, 168, 107, 0.2);
+            cursor: grab;
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .drop-zone.filled:active {
+            cursor: grabbing;
+        }
+        
+        .drop-zone.filled.dragging {
+            opacity: 0.7;
+            transform: rotate(2deg) scale(1.05);
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 168, 107, 0.3);
+        }
+        
+        .drop-zone.drag-over {
+            border-color: var(--nyt-blue);
+            background: var(--nyt-blue-light);
+            transform: scale(1.05);
+        }
+        
+        .word-space {
+            width: 12px;
+            height: 44px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 32px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            background: var(--nyt-black);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            min-width: 120px;
+        }
+        
+        .btn:hover {
+            background: var(--nyt-dark-gray);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--nyt-dark-gray);
+            border: 2px solid var(--nyt-lighter-gray);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--nyt-off-white);
+            border-color: var(--nyt-gray);
+        }
+        
+        .message {
+            text-align: center;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 6px;
+            font-size: 15px;
+            line-height: 1.4;
+            border-left: 4px solid;
+            animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .message.success {
+            background: var(--nyt-success-light);
+            color: var(--nyt-dark-gray);
+            border-left-color: var(--nyt-success);
+        }
+        
+        .message.error {
+            background: var(--nyt-error-light);
+            color: var(--nyt-dark-gray);
+            border-left-color: var(--nyt-error);
+        }
+        
+        .message.hint {
+            background: var(--nyt-warning-light);
+            color: var(--nyt-dark-gray);
+            border-left-color: var(--nyt-warning);
+        }
+        
+        .step-two {
+            display: none;
+        }
+        
+        .theme-complete .drop-zone.filled {
+            background: var(--nyt-success);
+            color: white;
+            border-color: var(--nyt-success);
+            animation: celebrate 0.6s ease;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: var(--nyt-off-white);
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--nyt-black);
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-family: 'Nyt Franklin', -apple-system, sans-serif;
+            font-size: 12px;
+            color: var(--nyt-gray);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
+            75% { transform: scale(1.1); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .phrase-section.solved {
+            animation: pulse 0.8s ease;
+        }
+        
+        @media (max-width: 640px) {
+            .game-container {
+                padding: 24px 16px;
+            }
+            
+            .phrase-section {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+            
+            .stats {
+                gap: 24px;
+                padding: 16px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+        
+        /* Focus states for accessibility */
+        .letter:focus,
+        .drop-zone:focus,
+        .btn:focus {
+            outline: 2px solid var(--nyt-blue);
+            outline-offset: 2px;
+        }
+        
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="game-header">
+        <div class="header-content">
+            <h1 class="game-title">THRAMBLE</h1>
+            <div class="nyt-games-label">NYT Games</div>
+        </div>
+    </header>
+    
+    <main class="game-container">
+        <p class="game-subtitle">Unscramble three related phrases, then discover the theme that connects them.</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="score">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="solved">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        
+        <div class="progress-indicator">
+            <div class="progress-dot" id="progress1"></div>
+            <div class="progress-dot" id="progress2"></div>
+            <div class="progress-dot" id="progress3"></div>
+            <div class="progress-dot" id="progress4"></div>
+        </div>
+        
+        <section class="phrase-section" id="phrase1">
+            <div class="phrase-label">
+                Phrase One
+                <span class="checkmark">✓</span>
+            </div>
+            <div class="letter-bank" id="letters1"></div>
+            <div class="solution-area" id="solution1"></div>
+        </section>
+        
+        <section class="phrase-section" id="phrase2">
+            <div class="phrase-label">
+                Phrase Two
+                <span class="checkmark">✓</span>
+            </div>
+            <div class="letter-bank" id="letters2"></div>
+            <div class="solution-area" id="solution2"></div>
+        </section>
+        
+        <section class="phrase-section" id="phrase3">
+            <div class="phrase-label">
+                Phrase Three
+                <span class="checkmark">✓</span>
+            </div>
+            <div class="letter-bank" id="letters3"></div>
+            <div class="solution-area" id="solution3"></div>
+        </section>
+        
+        <div class="controls">
+            <button class="btn" onclick="checkAllPhrases()">Check Progress</button>
+            <button class="btn btn-secondary" onclick="clearAll()">Reset</button>
+        </div>
+        
+        <section class="phrase-section step-two" id="step2">
+            <div class="phrase-label">
+                Theme
+                <span class="checkmark">✓</span>
+            </div>
+            <div class="letter-bank" id="themeLetters"></div>
+            <div class="solution-area" id="themeSolution"></div>
+        </section>
+        
+        <div class="controls">
+            <button class="btn btn-secondary" onclick="newPuzzle()">New Puzzle</button>
+        </div>
+        
+        <div id="message" class="message" style="display: none;"></div>
+    </main>
+
+    <script>
+        const puzzles = [
+            {
+                phrases: ["BREAK A LEG", "PIECE OF CAKE", "BITE THE BULLET"],
+                theme: "IDIOMS"
+            },
+            {
+                phrases: ["MONA LISA", "STARRY NIGHT", "THE SCREAM"],
+                theme: "PAINTINGS"
+            },
+            {
+                phrases: ["BIG APPLE", "WINDY CITY", "MOTOR CITY"],
+                theme: "NICKNAMES"
+            },
+            {
+                phrases: ["IRON MAN", "WONDER WOMAN", "SPIDER MAN"],
+                theme: "SUPERHEROES"
+            },
+            {
+                phrases: ["GRAND SLAM", "HOME RUN", "STRIKE OUT"],
+                theme: "BASEBALL"
+            }
+        ];
+        
+        let currentPuzzle = {};
+        let selectedLetter = null;
+        let draggedLetter = null;
+        let score = 0;
+        let solved = 0;
+        
+        function scrambleLetters(text) {
+            const letters = text.replace(/\s/g, '').split('');
+            for (let i = letters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [letters[i], letters[j]] = [letters[j], letters[i]];
+            }
+            return letters;
+        }
+        
+        function createLetter(char) {
+            const div = document.createElement('div');
+            div.className = 'letter';
+            div.textContent = char;
+            div.draggable = true;
+            div.tabIndex = 0;
+            
+            div.onclick = () => selectLetter(div);
+            div.ondragstart = handleDragStart;
+            div.ondragend = handleDragEnd;
+            
+            return div;
+        }
+        
+        function createDropZone() {
+            const div = document.createElement('div');
+            div.className = 'drop-zone';
+            div.tabIndex = 0;
+            
+            div.onclick = () => placeLetter(div);
+            div.ondragover = handleDragOver;
+            div.ondrop = handleDrop;
+            div.ondragenter = handleDragEnter;
+            div.ondragleave = handleDragLeave;
+            
+            return div;
+        }
+        
+        function makeDropZoneDraggable(dropZone) {
+            dropZone.draggable = true;
+            dropZone.ondragstart = handleDropZoneDragStart;
+            dropZone.ondragend = handleDropZoneDragEnd;
+        }
+        
+        function createWordSpace() {
+            const div = document.createElement('div');
+            div.className = 'word-space';
+            return div;
+        }
+        
+        // Interaction handlers
+        function selectLetter(letterEl) {
+            clearSelection();
+            selectedLetter = letterEl;
+            letterEl.classList.add('selected');
+        }
+        
+        function clearSelection() {
+            document.querySelectorAll('.letter.selected').forEach(l => 
+                l.classList.remove('selected'));
+            selectedLetter = null;
+        }
+        
+        function placeLetter(dropZone) {
+            if (!selectedLetter) {
+                if (dropZone.classList.contains('filled')) {
+                    returnToBank(dropZone);
+                }
+                return;
+            }
+            
+            placeLetterInDropZone(selectedLetter, dropZone);
+            clearSelection();
+        }
+        
+        function placeLetterInDropZone(letterEl, dropZone) {
+            // If the drop zone is already filled, swap the letters
+            if (dropZone.classList.contains('filled')) {
+                swapLetters(letterEl, dropZone);
+                return;
+            }
+            
+            dropZone.textContent = letterEl.textContent;
+            dropZone.classList.add('filled');
+            makeDropZoneDraggable(dropZone);
+            
+            // Remove the original letter
+            if (letterEl.classList.contains('letter')) {
+                letterEl.remove();
+            } else if (letterEl.classList.contains('drop-zone')) {
+                // If dragging from another drop zone
+                letterEl.textContent = '';
+                letterEl.classList.remove('filled');
+                letterEl.draggable = false;
+                letterEl.ondragstart = null;
+                letterEl.ondragend = null;
+            }
+            
+            const section = dropZone.closest('.phrase-section');
+            if (section.id === 'step2') {
+                checkThemeAutomatic();
+            } else {
+                checkPhrase(section);
+            }
+        }
+        
+        function swapLetters(sourceEl, targetZone) {
+            const sourceLetter = sourceEl.textContent || sourceEl.getAttribute('data-letter');
+            const targetLetter = targetZone.textContent;
+            
+            // If source is a letter from bank
+            if (sourceEl.classList.contains('letter')) {
+                // Replace target with source letter
+                targetZone.textContent = sourceLetter;
+                sourceEl.remove();
+                
+                // Create new letter for the displaced character and add to appropriate bank
+                const section = targetZone.closest('.phrase-section');
+                const bank = section.querySelector('.letter-bank');
+                const newLetter = createLetter(targetLetter);
+                bank.appendChild(newLetter);
+            } 
+            // If source is another drop zone (letter-to-letter swap)
+            else if (sourceEl.classList.contains('drop-zone')) {
+                targetZone.textContent = sourceLetter;
+                sourceEl.textContent = targetLetter;
+                
+                // Both zones remain filled and draggable
+                makeDropZoneDraggable(targetZone);
+                makeDropZoneDraggable(sourceEl);
+            }
+            
+            // Check both affected phrases
+            const sourceSection = sourceEl.closest('.phrase-section');
+            const targetSection = targetZone.closest('.phrase-section');
+            
+            if (sourceSection) {
+                if (sourceSection.id === 'step2') {
+                    checkThemeAutomatic();
+                } else {
+                    checkPhrase(sourceSection);
+                }
+            }
+            
+            if (targetSection && targetSection !== sourceSection) {
+                if (targetSection.id === 'step2') {
+                    checkThemeAutomatic();
+                } else {
+                    checkPhrase(targetSection);
+                }
+            }
+        }
+        
+        function returnToBank(dropZone) {
+            if (!dropZone.textContent) return;
+            
+            const section = dropZone.closest('.phrase-section');
+            const bank = section.querySelector('.letter-bank');
+            const newLetter = createLetter(dropZone.textContent);
+            bank.appendChild(newLetter);
+            
+            dropZone.textContent = '';
+            dropZone.classList.remove('filled');
+            dropZone.draggable = false;
+            dropZone.ondragstart = null;
+            dropZone.ondragend = null;
+            
+            const sectionToCheck = dropZone.closest('.phrase-section');
+            if (sectionToCheck.id === 'step2') {
+                checkThemeAutomatic();
+            } else {
+                checkPhrase(sectionToCheck);
+            }
+        }
+        
+        // Drag handlers for letters in banks
+        function handleDragStart(e) {
+            draggedLetter = e.target;
+            e.target.classList.add('dragging');
+            clearSelection();
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedLetter = null;
+        }
+        
+        // Drag handlers for filled drop zones
+        function handleDropZoneDragStart(e) {
+            draggedLetter = e.target;
+            e.target.classList.add('dragging');
+            e.target.setAttribute('data-letter', e.target.textContent);
+            clearSelection();
+        }
+        
+        function handleDropZoneDragEnd(e) {
+            e.target.classList.remove('dragging');
+            e.target.removeAttribute('data-letter');
+            draggedLetter = null;
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleDragEnter(e) {
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.add('drag-over');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            if (draggedLetter && e.target.classList.contains('drop-zone')) {
+                placeLetterInDropZone(draggedLetter, e.target);
+            }
+        }
+        
+        // Game logic
+        function checkPhrase(section) {
+            const phraseIndex = parseInt(section.id.replace('phrase', '')) - 1;
+            if (phraseIndex < 0 || phraseIndex > 2) return;
+            
+            const dropZones = section.querySelectorAll('.drop-zone');
+            let answer = '';
+            let complete = true;
+            
+            dropZones.forEach(zone => {
+                if (zone.classList.contains('filled')) {
+                    answer += zone.textContent;
+                } else {
+                    complete = false;
+                }
+            });
+            
+            const target = currentPuzzle.phrases[phraseIndex].replace(/\s/g, '');
+            
+            if (complete && answer === target) {
+                if (!section.classList.contains('solved')) {
+                    section.classList.add('solved');
+                    document.getElementById(`progress${phraseIndex + 1}`).classList.add('completed');
+                    showMessage(`Phrase ${phraseIndex + 1} complete: "${currentPuzzle.phrases[phraseIndex]}"`, 'success');
+                    checkAllComplete();
+                }
+            } else {
+                section.classList.remove('solved');
+                document.getElementById(`progress${phraseIndex + 1}`).classList.remove('completed');
+            }
+        }
+        
+        function checkAllComplete() {
+            const solvedCount = document.querySelectorAll('.phrase-section.solved').length;
+            
+            if (solvedCount === 3) {
+                setTimeout(() => {
+                    document.getElementById('step2').style.display = 'block';
+                    showMessage('Excellent! All phrases solved. Now unscramble the connecting theme.', 'success');
+                }, 800);
+            }
+        }
+        
+        function checkThemeAutomatic() {
+            const dropZones = document.querySelectorAll('#themeSolution .drop-zone');
+            let answer = '';
+            let complete = true;
+            
+            dropZones.forEach(zone => {
+                if (zone.classList.contains('filled')) {
+                    answer += zone.textContent;
+                } else {
+                    complete = false;
+                }
+            });
+            
+            if (complete && answer === currentPuzzle.theme) {
+                document.getElementById('progress4').classList.add('completed');
+                document.getElementById('step2').classList.add('theme-complete');
+                
+                dropZones.forEach((zone, i) => {
+                    setTimeout(() => {
+                        zone.style.animation = 'celebrate 0.6s ease';
+                    }, i * 100);
+                });
+                
+                setTimeout(() => {
+                    score += 100;
+                    solved++;
+                    document.getElementById('score').textContent = score;
+                    document.getElementById('solved').textContent = solved;
+                    showMessage(`🎉 Brilliant! Complete puzzle solved. Theme: "${currentPuzzle.theme}"`, 'success');
+                }, 600);
+            }
+        }
+        
+        function checkAllPhrases() {
+            let solvedCount = 0;
+            
+            for (let i = 1; i <= 3; i++) {
+                const section = document.getElementById(`phrase${i}`);
+                checkPhrase(section);
+                if (section.classList.contains('solved')) {
+                    solvedCount++;
+                }
+            }
+            
+            if (solvedCount === 3) {
+                checkAllComplete();
+            } else {
+                showMessage(`Progress: ${solvedCount}/3 phrases solved`, 'hint');
+            }
+        }
+        
+        function setupPhrase(index) {
+            const phrase = currentPuzzle.phrases[index];
+            const bank = document.getElementById(`letters${index + 1}`);
+            const solution = document.getElementById(`solution${index + 1}`);
+            
+            bank.innerHTML = '';
+            solution.innerHTML = '';
+            
+            const scrambled = scrambleLetters(phrase);
+            scrambled.forEach(char => bank.appendChild(createLetter(char)));
+            
+            for (let i = 0; i < phrase.length; i++) {
+                if (phrase[i] === ' ') {
+                    solution.appendChild(createWordSpace());
+                } else {
+                    solution.appendChild(createDropZone());
+                }
+            }
+        }
+        
+        function setupTheme() {
+            const bank = document.getElementById('themeLetters');
+            const solution = document.getElementById('themeSolution');
+            
+            bank.innerHTML = '';
+            solution.innerHTML = '';
+            
+            const scrambled = scrambleLetters(currentPuzzle.theme);
+            scrambled.forEach(char => bank.appendChild(createLetter(char)));
+            
+            for (let i = 0; i < currentPuzzle.theme.length; i++) {
+                solution.appendChild(createDropZone());
+            }
+        }
+        
+        function clearAll() {
+            document.querySelectorAll('.phrase-section').forEach(section => {
+                const bank = section.querySelector('.letter-bank');
+                const solution = section.querySelector('.solution-area');
+                const dropZones = solution.querySelectorAll('.drop-zone.filled');
+                
+                dropZones.forEach(zone => {
+                    bank.appendChild(createLetter(zone.textContent));
+                    zone.textContent = '';
+                    zone.classList.remove('filled');
+                    zone.draggable = false;
+                    zone.ondragstart = null;
+                    zone.ondragend = null;
+                });
+                
+                section.classList.remove('solved', 'theme-complete');
+            });
+            
+            document.querySelectorAll('.progress-dot').forEach(dot => 
+                dot.classList.remove('completed'));
+            
+            clearSelection();
+            showMessage('All letters returned to starting positions', 'hint');
+        }
+        
+        function newPuzzle() {
+            currentPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            
+            setupPhrase(0);
+            setupPhrase(1);
+            setupPhrase(2);
+            setupTheme();
+            
+            document.querySelectorAll('.phrase-section').forEach(section => {
+                section.classList.remove('solved', 'theme-complete');
+            });
+            
+            document.querySelectorAll('.progress-dot').forEach(dot => 
+                dot.classList.remove('completed'));
+            
+            document.getElementById('step2').style.display = 'none';
+            clearSelection();
+            hideMessage();
+        }
+        
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            msg.style.display = 'block';
+            
+            if (type === 'success' || type === 'hint') {
+                setTimeout(() => {
+                    if (msg.textContent === text) {
+                        hideMessage();
+                    }
+                }, 4000);
+            }
+        }
+        
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                clearSelection();
+            }
+        });
+        
+        // Initialize
+        newPuzzle();
+    </script>
+</body>
+</html>
